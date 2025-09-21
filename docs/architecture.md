@@ -4,31 +4,34 @@
 
 ### Context
 ```mermaid
-%% C4 like context diagram
 flowchart LR
   User([User]) --> Front[Angular Frontend]
   Front --> API[Warehouse API]
   API --> SQL[(SQL Server)]
-  API --> Redis[(Redis Cache*)]
-  note right of Redis: * Optional / future use
+  API --> Redis[(Redis Cache)]
+  
+  classDef optional stroke-dasharray: 5 5
+  class Redis optional
 ```
 
 ### Containers
 ```mermaid
 flowchart TB
-  subgraph Warehouse System
-    Web[Warehouse.Web\nASP.NET Core Host] --> Services[Service Layer\n(Concrete Services)]
-    Services --> Abstractions[ServiceAbstraction\n(Interfaces / Generic Contracts)]
-    Services --> Domain[DomainLayer\n(Entities)]
-    Services --> Persistence[Persistence\n(DbContext + Repos + UoW)]
-    Web --> Presentation[Presentation\n(Controllers, Filters)]
-    Web --> Shared[Shared\n(DTOs / Enums)]
+  subgraph "Warehouse System"
+    Web["Warehouse.Web<br/>ASP.NET Core Host"] --> Services["Service Layer<br/>(Concrete Services)"]
+    Services --> Abstractions["ServiceAbstraction<br/>(Interfaces / Generic Contracts)"]
+    Services --> Domain["DomainLayer<br/>(Entities)"]
+    Services --> Persistence["Persistence<br/>(DbContext + Repos + UoW)"]
+    Web --> Presentation["Presentation<br/>(Controllers, Filters)"]
+    Web --> Shared["Shared<br/>(DTOs / Enums)"]
     Services --> Shared
     Persistence --> Shared
   end
   Persistence --> DB[(SQL Server)]
-  Persistence --> Cache[(Redis*)]
-  style Cache stroke-dasharray: 3 3
+  Persistence --> Cache[(Redis)]
+  
+  classDef optional stroke-dasharray: 5 5
+  class Cache optional
 ```
 
 ## 2. Project Coupling Rules
@@ -53,17 +56,46 @@ erDiagram
   CUSTOMER ||--o{ INVOICE : billed
   SUPPLIER ||--o{ INVOICE : provided
 
+  USER {
+    string Id PK
+    string UserName
+    string Email
+    string PasswordHash
+  }
+  
+  PRODUCT {
+    string Id PK
+    string Name
+    string Code
+    decimal Price
+    int Quantity
+  }
+  
+  WAREHOUSE {
+    string Id PK
+    string Name
+    string Location
+  }
+
   INVOICE {
-    string Id
+    string Id PK
     datetime Date
     decimal TotalAmount
     string Type
   }
+  
   INVENTORY_TRANSACTION {
-    string Id
+    string Id PK
     datetime Date
     int Quantity
-    enum TransactionType
+    string TransactionType
+  }
+  
+  REFRESH_TOKEN {
+    string Id PK
+    string Token
+    datetime Expires
+    bool IsRevoked
   }
 ```
 
@@ -152,11 +184,15 @@ dotnet ef migrations add AddInventoryModule -p Infrastructure/Persistence/Persis
 ```mermaid
 stateDiagram-v2
   [*] --> Issued
-  Issued --> Active
-  Active --> Expired: Expiry reached
-  Active --> Revoked: Manual revoke or reuse detection
+  Issued --> Active : Token validated
+  Active --> Expired : Expiry time reached
+  Active --> Revoked : Manual revoke or reuse detected
   Expired --> [*]
   Revoked --> [*]
+  
+  note right of Active : Token can be used for authentication
+  note right of Expired : Token expired naturally
+  note right of Revoked : Token invalidated by security policy
 ```
 
 ## 16. Future Enhancements

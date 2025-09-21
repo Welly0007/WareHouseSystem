@@ -78,6 +78,15 @@ Profiles live with service implementations (close to transformation logic) for: 
 - .NET 8 SDK
 - SQL Server instance
 
+### 🔒 Security Configuration Setup
+**IMPORTANT**: Before running the project, you must configure your local development settings:
+
+1. Copy `appsettings.json` to `appsettings.Development.json`
+2. Update the placeholder values with your actual local settings (database connection, JWT secret, etc.)
+3. **Never commit `appsettings.Development.json`** - it's excluded from Git for security
+
+> 📖 **See [docs/SECURITY-CONFIG.md](docs/SECURITY-CONFIG.md) for detailed security setup instructions**
+
 ### Setup & Run
 ```bash
 dotnet build

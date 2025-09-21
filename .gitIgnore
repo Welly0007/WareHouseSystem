@@ -13,6 +13,12 @@
 # Frontend Angular Application
 Front/
 
+# Configuration files with secrets (NEVER commit these!)
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.Production.json
+**/appsettings.Staging.json
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
